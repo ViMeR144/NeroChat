@@ -1,0 +1,33 @@
+services:
+- type: web
+  name: neochat-backend
+  env: docker
+  plan: free
+  dockerfilePath: ./Dockerfile
+  envVars:
+  - key: OPENAI_BASE_URL
+    value: https://openrouter.ai/api/v1
+  - key: OPENAI_API_KEY
+    sync: false
+  - key: LLM_MODEL
+    value: anthropic/claude-3.5-sonnet
+  - key: JWT_SECRET
+    generateValue: true
+  - key: DATABASE_URL
+    value: sqlite:///./data.db
+  healthCheckPath: /
+
+- type: static
+  name: neochat-frontend
+  env: static
+  buildCommand: npm ci && npm run build
+  staticPublishPath: web/dist
+  buildFilter:
+    paths:
+    - web/**
+  envVars:
+  - key: VITE_API_BASE
+    fromService:
+      type: web
+      name: neochat-backend
+      property: url
